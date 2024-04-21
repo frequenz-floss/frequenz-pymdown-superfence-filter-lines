@@ -38,7 +38,7 @@ classifiers = [
   "Topic :: Software Development :: Libraries",
   "Typing :: Typed",
 ]
-requires-python = ">= 3.11, < 4"
+requires-python = ">= 3.7, < 4"
 dependencies = ["Markdown >= 3.5, < 4", "pymdown-extensions >= 10, < 11"]
 dynamic = ["version"]
 
