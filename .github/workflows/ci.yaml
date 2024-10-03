@@ -41,6 +41,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Setup Git
+        uses: frequenz-floss/gh-action-setup-git@v0.x.x
+
       - name: Print environment (debug)
         run: env
 
@@ -88,10 +91,14 @@ jobs:
     # The job name should match the name of the `nox` job.
     name: Test with nox
     needs: ["nox"]
+    # We skip this job only if nox was also skipped
+    if: always() && needs.nox.result != 'skipped'
     runs-on: ubuntu-20.04
+    env:
+      DEPS_RESULT: ${{ needs.nox.result }}
     steps:
-      - name: Return true
-        run: "true"
+      - name: Check matrix job result
+        run: test "$DEPS_RESULT" = "success"
 
   nox-cross-arch:
     name: Cross-arch tests with nox
@@ -115,6 +122,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
+      - name: Setup Git
+        uses: frequenz-floss/gh-action-setup-git@v0.x.x
+
       - name: Fetch sources
         uses: actions/checkout@v4
 
@@ -200,15 +210,22 @@ jobs:
     # The job name should match the name of the `nox-cross-arch` job.
     name: Cross-arch tests with nox
     needs: ["nox-cross-arch"]
+    # We skip this job only if nox-cross-arch was also skipped
+    if: always() && needs.nox-cross-arch.result != 'skipped'
     runs-on: ubuntu-20.04
+    env:
+      DEPS_RESULT: ${{ needs.nox-cross-arch.result }}
     steps:
-      - name: Return true
-        run: "true"
+      - name: Check matrix job result
+        run: test "$DEPS_RESULT" = "success"
 
   build:
     name: Build distribution packages
     runs-on: ubuntu-20.04
     steps:
+      - name: Setup Git
+        uses: frequenz-floss/gh-action-setup-git@v0.x.x
+
       - name: Fetch sources
         uses: actions/checkout@v4
         with:
@@ -241,17 +258,24 @@ jobs:
     needs: ["build"]
     runs-on: ubuntu-20.04
     steps:
+      - name: Setup Git
+        uses: frequenz-floss/gh-action-setup-git@v0.x.x
+
       - name: Fetch sources
         uses: actions/checkout@v4
+
       - name: Download package
         uses: actions/download-artifact@v4
         with:
           name: dist-packages
           path: dist
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
+
       - name: Set up docker-buildx
         uses: docker/setup-buildx-action@v3
+
       - name: Test Installation
         uses: docker/build-push-action@v6
         with:
